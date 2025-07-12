@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { detectBreakingChanges } from '../scripts/detectBreakingChanges';
+import { detectBreakingChanges } from './detectBreakingChanges';
 
 async function run(): Promise<void> {
   try {
@@ -14,7 +14,7 @@ async function run(): Promise<void> {
     core.info(`Schema file: ${schemaPath}`);
 
     // Get the GitHub token and create octokit client
-    const token = core.getInput('token') || process.env.GITHUB_TOKEN;
+    const token = core.getInput('token') || process.env.GITHUB_TOKEN || '';
     const octokit = github.getOctokit(token);
 
     // Get current schema

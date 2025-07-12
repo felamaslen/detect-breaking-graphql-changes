@@ -35,7 +35,7 @@ describe('field removal', () => {
         email: String
         age: Int
       }
-    `);
+    `;
 
     const toSchema = gql`
       type User {
@@ -68,7 +68,7 @@ describe('field removal', () => {
         title: String
         content: String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type User {
@@ -112,7 +112,7 @@ describe('field removal', () => {
         id: String
         name: String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type User {
@@ -140,7 +140,7 @@ describe('type removal', () => {
         id: String
         title: String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type User {
@@ -173,7 +173,7 @@ describe('type removal', () => {
         id: String
         text: String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type User {
@@ -202,7 +202,7 @@ describe('type removal', () => {
         score: Float
         active: Boolean
       }
-    `);
+    `;
 
     const toSchema = gql`
       type User {
@@ -225,7 +225,7 @@ describe('type kind changes', () => {
         id: String
         name: String
       }
-    `);
+    `;
 
     const toSchema = gql`
       scalar User
@@ -247,7 +247,7 @@ describe('type kind changes', () => {
         ACTIVE
         INACTIVE
       }
-    `);
+    `;
 
     const toSchema = gql`
       type Status {
@@ -272,7 +272,7 @@ describe('argument changes', () => {
       type Query {
         user(id: String, name: String): String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type Query {
@@ -295,7 +295,7 @@ describe('argument changes', () => {
       type Query {
         user(id: String): String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type Query {
@@ -318,7 +318,7 @@ describe('argument changes', () => {
       type Query {
         user(id: String): String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type Query {
@@ -341,7 +341,7 @@ describe('argument changes', () => {
       type Query {
         user(id: String): String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type Query {
@@ -364,7 +364,7 @@ describe('argument changes', () => {
       type Query {
         user(id: String): String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type Query {
@@ -382,7 +382,7 @@ describe('argument changes', () => {
       type Query {
         user(id: String!): String
       }
-    `);
+    `;
 
     const toSchema = gql`
       type Query {
@@ -404,7 +404,7 @@ describe('enum value changes', () => {
         INACTIVE
         PENDING
       }
-    `);
+    `;
 
     const toSchema = gql`
       enum Status {
@@ -431,7 +431,7 @@ describe('enum value changes', () => {
         PENDING
         ARCHIVED
       }
-    `);
+    `;
 
     const toSchema = gql`
       enum Status {
@@ -463,7 +463,7 @@ describe('enum value changes', () => {
         HIGH
         LOW
       }
-    `);
+    `;
 
     const toSchema = gql`
       enum Status {
@@ -493,7 +493,7 @@ describe('enum value changes', () => {
         ACTIVE
         INACTIVE
       }
-    `);
+    `;
 
     const toSchema = gql`
       enum Status {
