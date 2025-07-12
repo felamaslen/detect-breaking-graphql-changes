@@ -54,7 +54,6 @@ interface Change {
   message: string;
   resourceName: string;
   wasDeprecated: boolean;
-  wasNotImplemented: boolean;
   wasRequiredByDirective?: boolean;
 }
 
@@ -76,14 +75,6 @@ const isDeprecated = <Node extends { directives?: readonly DirectiveNode[] }>(
 ) =>
   !!node?.directives?.some(directive => directive.name.value === 'deprecated');
 
-const isNotImplemented = <
-  Node extends { directives?: readonly DirectiveNode[] },
->(
-  node: Node | null | undefined,
-) =>
-  !!node?.directives?.some(
-    directive => directive.name.value === 'notImplemented',
-  );
 
 /**
  * Given two schemas, returns an Array containing descriptions of any breaking
@@ -116,7 +107,6 @@ function findRemovedTypes(
         resourceName: typeName,
         type: 'TYPE_REMOVED',
         wasDeprecated: isDeprecated(oldType.astNode),
-        wasNotImplemented: isNotImplemented(oldType.astNode),
       });
     }
   }
@@ -150,7 +140,6 @@ function findTypesThatChangedKind(
         resourceName: typeName,
         type: 'TYPE_CHANGED_KIND',
         wasDeprecated: isDeprecated(oldType.astNode),
-        wasNotImplemented: isNotImplemented(oldType.astNode),
       });
     }
   }
@@ -213,9 +202,6 @@ function findFieldsThatChangedTypeOnObjectOrInterfaceTypes(
           type: 'FIELD_REMOVED',
           message: `\`${typeName}.${fieldName}\` removed from schema`,
           wasDeprecated: isDeprecated(oldTypeFieldsDef[fieldName].astNode),
-          wasNotImplemented: isNotImplemented(
-            oldTypeFieldsDef[fieldName].astNode,
-          ),
         });
       } else {
         const oldFieldType = oldTypeFieldsDef[fieldName].type;
@@ -237,10 +223,7 @@ function findFieldsThatChangedTypeOnObjectOrInterfaceTypes(
             resourceName: `${typeName}.${fieldName}`,
             type: 'FIELD_CHANGED_KIND',
             wasDeprecated: isDeprecated(oldTypeFieldsDef[fieldName].astNode),
-            wasNotImplemented: isNotImplemented(
-              oldTypeFieldsDef[fieldName].astNode,
-            ),
-          });
+            });
         }
       }
     }
@@ -366,7 +349,6 @@ function findArgChanges(
             resourceName: `${fieldName}.${oldArgDef.name}`,
             type: 'ARG_REMOVED',
             wasDeprecated: isDeprecated(oldArgDef.astNode),
-            wasNotImplemented: isNotImplemented(oldArgDef.astNode),
           });
         } else {
           const isSafe = isChangeSafeForInputObjectFieldOrFieldArg(
@@ -392,8 +374,7 @@ function findArgChanges(
               resourceName: `${fieldName}.${oldArgDef.name}`,
               type: becameRequired ? 'ARG_BECAME_REQUIRED' : 'ARG_CHANGED_KIND',
               wasDeprecated: isDeprecated(oldArgDef.astNode),
-              wasNotImplemented: isNotImplemented(oldArgDef.astNode),
-              wasRequiredByDirective,
+                wasRequiredByDirective,
             });
           } else if (
             oldArgDef.defaultValue !== undefined &&
@@ -405,8 +386,7 @@ function findArgChanges(
               type: 'ARG_DEFAULT_VALUE_CHANGE',
               message: `\`${oldType.name}.${fieldName}\` arg \`${oldArgDef.name}\` has changed defaultValue`,
               wasDeprecated: isDeprecated(oldType.astNode),
-              wasNotImplemented: isNotImplemented(oldType.astNode),
-            });
+                  });
           }
         }
       }
@@ -424,10 +404,7 @@ function findArgChanges(
               type: 'REQUIRED_ARG_ADDED',
               message: `A required arg \`${argName}\` on \`${typeName}.${fieldName}\` was added`,
               wasDeprecated: isDeprecated(oldTypeFields[fieldName].astNode),
-              wasNotImplemented: isNotImplemented(
-                oldTypeFields[fieldName].astNode,
-              ),
-            });
+                });
           } else {
             dangerousChanges.push({
               loc: getLocation(newArgDef.astNode),
@@ -435,10 +412,7 @@ function findArgChanges(
               type: 'OPTIONAL_ARG_ADDED',
               message: `An optional arg \`${argName}\` on \`${typeName}.${fieldName}\` was added`,
               wasDeprecated: isDeprecated(oldTypeFields[fieldName].astNode),
-              wasNotImplemented: isNotImplemented(
-                oldTypeFields[fieldName].astNode,
-              ),
-            });
+                });
           }
         }
       }
@@ -481,7 +455,6 @@ function findValuesRemovedFromEnums(
           type: 'VALUE_REMOVED_FROM_ENUM',
           message: `Value \`${value.name}\` removed from enum \`${typeName}\``,
           wasDeprecated: isDeprecated(value.astNode),
-          wasNotImplemented: isNotImplemented(value.astNode),
         });
       }
     }
@@ -505,5 +478,5 @@ export function detectBreakingChanges(
     ...findFieldsThatChangedTypeOnObjectOrInterfaceTypes(fromSchema, toSchema),
     ...findArgChanges(fromSchema, toSchema).breakingChanges,
     ...findValuesRemovedFromEnums(fromSchema, toSchema),
-  ].filter(changes => !changes.wasNotImplemented);
+  ];
 }
