@@ -81,38 +81,28 @@ const isDeprecated = <Node extends { directives?: readonly DirectiveNode[] }>(
  * Deep equality comparison for default values
  */
 function isDefaultValueEqual(oldValue: any, newValue: any): boolean {
-  if (oldValue === newValue) {
-    return true;
-  }
-  
-  if (oldValue == null || newValue == null) {
-    return oldValue === newValue;
-  }
-  
-  if (typeof oldValue !== typeof newValue) {
-    return false;
-  }
-  
-  if (Array.isArray(oldValue) && Array.isArray(newValue)) {
-    if (oldValue.length !== newValue.length) {
-      return false;
-    }
-    return oldValue.every((item, index) => isDefaultValueEqual(item, newValue[index]));
-  }
-  
+  if (oldValue === newValue) return true;
+  if (oldValue == null || newValue == null) return false;
+  if (typeof oldValue !== typeof newValue) return false;
+  if (Array.isArray(oldValue) && Array.isArray(newValue))
+    return (
+      oldValue.length === newValue.length &&
+      oldValue.every((item, index) =>
+        isDefaultValueEqual(item, newValue[index]),
+      )
+    );
   if (typeof oldValue === 'object' && typeof newValue === 'object') {
     const oldKeys = Object.keys(oldValue);
     const newKeys = Object.keys(newValue);
-    
-    if (oldKeys.length !== newKeys.length) {
-      return false;
-    }
-    
-    return oldKeys.every(key => 
-      newKeys.includes(key) && isDefaultValueEqual(oldValue[key], newValue[key])
+    return (
+      oldKeys.length === newKeys.length &&
+      oldKeys.every(
+        (key) =>
+          newKeys.includes(key) &&
+          isDefaultValueEqual(oldValue[key], newValue[key]),
+      )
     );
   }
-  
   return false;
 }
 

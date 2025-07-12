@@ -124091,6 +124091,36 @@ function buildSchema(source, options) {
 const getLocation = (astNode) => `${astNode?.loc?.startToken.line ?? 0}:${astNode?.loc?.endToken.column ?? 0}`;
 const isDeprecated = (node) => !!node?.directives?.some((directive) => directive.name.value === 'deprecated');
 /**
+ * Deep equality comparison for default values
+ */
+function isDefaultValueEqual(oldValue, newValue) {
+    if (oldValue === newValue) {
+        return true;
+    }
+    if (oldValue == null || newValue == null) {
+        return oldValue === newValue;
+    }
+    if (typeof oldValue !== typeof newValue) {
+        return false;
+    }
+    if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+        if (oldValue.length !== newValue.length) {
+            return false;
+        }
+        return oldValue.every((item, index) => isDefaultValueEqual(item, newValue[index]));
+    }
+    if (typeof oldValue === 'object' && typeof newValue === 'object') {
+        const oldKeys = Object.keys(oldValue);
+        const newKeys = Object.keys(newValue);
+        if (oldKeys.length !== newKeys.length) {
+            return false;
+        }
+        return oldKeys.every((key) => newKeys.includes(key) &&
+            isDefaultValueEqual(oldValue[key], newValue[key]));
+    }
+    return false;
+}
+/**
  * Given two schemas, returns an Array containing descriptions of any breaking
  * changes in the newSchema related to removing an entire type.
  */
@@ -124316,7 +124346,7 @@ function findArgChanges(oldSchema, newSchema) {
                         });
                     }
                     else if (oldArgDef.defaultValue !== undefined &&
-                        oldArgDef.defaultValue !== newArgDef.defaultValue) {
+                        !isDefaultValueEqual(oldArgDef.defaultValue, newArgDef.defaultValue)) {
                         dangerousChanges.push({
                             loc: getLocation(newArgDef.astNode),
                             resourceName: `${fieldName}.${oldArgDef.name}`,

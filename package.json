@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "GitHub Action to detect breaking changes on a GraphQL schema",
   "main": "dist/index.js",
+  "bin": {
+    "detect-breaking-graphql-changes": "dist/cli.js"
+  },
   "scripts": {
     "build": "rollup -c",
     "test": "vitest",
