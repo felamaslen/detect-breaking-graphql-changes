@@ -17,6 +17,8 @@ jobs:
   detect-breaking-changes:
     permissions:
       contents: read
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: felamaslen/detect-breaking-graphql-changes
