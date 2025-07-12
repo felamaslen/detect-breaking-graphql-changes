@@ -20,7 +20,7 @@ import {
   isUnionType,
 } from 'graphql';
 
-export type BreakingChangeType =
+type BreakingChangeType =
   | 'FIELD_CHANGED_KIND'
   | 'FIELD_REMOVED'
   | 'INPUT_FIELD_BECAME_REQUIRED'
@@ -57,11 +57,11 @@ interface Change {
   wasRequiredByDirective?: boolean;
 }
 
-export interface BreakingChange extends Change {
+interface BreakingChange extends Change {
   type: BreakingChangeType;
 }
 
-export interface DangerousChange extends Change {
+interface DangerousChange extends Change {
   type: DangerousChangeType;
 }
 
@@ -469,15 +469,24 @@ function findValuesRemovedFromEnums(
 export function detectBreakingChanges(
   from: string,
   to: string,
-): BreakingChange[] {
+): { breakingChanges: BreakingChange[]; dangerousChanges: DangerousChange[] } {
   const fromSchema = buildSchema(from);
   const toSchema = buildSchema(to);
 
-  return [
+  const argChanges = findArgChanges(fromSchema, toSchema);
+
+  const breakingChanges = [
     ...findRemovedTypes(fromSchema, toSchema),
     ...findTypesThatChangedKind(fromSchema, toSchema),
     ...findFieldsThatChangedTypeOnObjectOrInterfaceTypes(fromSchema, toSchema),
-    ...findArgChanges(fromSchema, toSchema).breakingChanges,
+    ...argChanges.breakingChanges,
     ...findValuesRemovedFromEnums(fromSchema, toSchema),
   ];
+
+  const dangerousChanges = [...argChanges.dangerousChanges];
+
+  return {
+    breakingChanges,
+    dangerousChanges,
+  };
 }

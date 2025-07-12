@@ -40,13 +40,10 @@ async function run(): Promise<void> {
     );
 
     // Compare schemas using our custom GraphQL inspector
-    const breakingChanges = detectBreakingChanges(
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
       baseSchemaContent,
       currentSchemaContent,
     );
-
-    // Filter breaking changes (dangerous changes not implemented yet in our inspector)
-    const dangerousChanges: any[] = [];
 
     // Set outputs
     core.setOutput('breaking_changes', JSON.stringify(breakingChanges));

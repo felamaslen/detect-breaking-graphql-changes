@@ -19,12 +19,12 @@ describe('field removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe('`User.email` removed from schema');
-    expect(changes[0].type).toBe('FIELD_REMOVED');
-    expect(changes[0].resourceName).toBe('User.email');
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe('`User.email` removed from schema');
+    expect(breakingChanges[0].type).toBe('FIELD_REMOVED');
+    expect(breakingChanges[0].resourceName).toBe('User.email');
   });
 
   it('should detect multiple field removals from the same type', () => {
@@ -43,17 +43,17 @@ describe('field removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(3);
-    expect(changes.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toHaveLength(3);
+    expect(breakingChanges.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         '`User.name` removed from schema',
         '`User.email` removed from schema',
         '`User.age` removed from schema',
       ]),
     );
-    expect(changes.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
+    expect(breakingChanges.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
   });
 
   it('should detect field removals from multiple types', () => {
@@ -81,16 +81,16 @@ describe('field removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(2);
-    expect(changes.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toHaveLength(2);
+    expect(breakingChanges.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         '`User.name` removed from schema',
         '`Post.content` removed from schema',
       ]),
     );
-    expect(changes.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
+    expect(breakingChanges.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
   });
 
   it('should not detect breaking changes when no fields are removed', () => {
@@ -101,9 +101,9 @@ describe('field removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(schema, schema);
+    const { breakingChanges } = detectBreakingChanges(schema, schema);
 
-    expect(changes).toHaveLength(0);
+    expect(breakingChanges).toHaveLength(0);
   });
 
   it('should not detect breaking changes when fields are added', () => {
@@ -122,9 +122,9 @@ describe('field removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(0);
+    expect(breakingChanges).toHaveLength(0);
   });
 });
 
@@ -149,12 +149,12 @@ describe('type removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe('`Post` removed from schema');
-    expect(changes[0].type).toBe('TYPE_REMOVED');
-    expect(changes[0].resourceName).toBe('Post');
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe('`Post` removed from schema');
+    expect(breakingChanges[0].type).toBe('TYPE_REMOVED');
+    expect(breakingChanges[0].resourceName).toBe('Post');
   });
 
   it('should detect multiple type removals', () => {
@@ -182,16 +182,16 @@ describe('type removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(2);
-    expect(changes.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toHaveLength(2);
+    expect(breakingChanges.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         '`Post` removed from schema',
         '`Comment` removed from schema',
       ]),
     );
-    expect(changes.every((c) => c.type === 'TYPE_REMOVED')).toBe(true);
+    expect(breakingChanges.every((c) => c.type === 'TYPE_REMOVED')).toBe(true);
   });
 
   it('should not detect built-in scalar type removals', () => {
@@ -210,11 +210,11 @@ describe('type removal', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     // Should only detect field removals, not scalar type removals
-    expect(changes.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
-    expect(changes.some((c) => c.type === 'TYPE_REMOVED')).toBe(false);
+    expect(breakingChanges.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
+    expect(breakingChanges.some((c) => c.type === 'TYPE_REMOVED')).toBe(false);
   });
 });
 
@@ -231,14 +231,14 @@ describe('type kind changes', () => {
       scalar User
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe(
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe(
       '`User` changed from an Object type to a Scalar type',
     );
-    expect(changes[0].type).toBe('TYPE_CHANGED_KIND');
-    expect(changes[0].resourceName).toBe('User');
+    expect(breakingChanges[0].type).toBe('TYPE_CHANGED_KIND');
+    expect(breakingChanges[0].resourceName).toBe('User');
   });
 
   it('should detect when a type changes from enum to object', () => {
@@ -255,14 +255,14 @@ describe('type kind changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe(
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe(
       '`Status` changed from an Enum type to an Object type',
     );
-    expect(changes[0].type).toBe('TYPE_CHANGED_KIND');
-    expect(changes[0].resourceName).toBe('Status');
+    expect(breakingChanges[0].type).toBe('TYPE_CHANGED_KIND');
+    expect(breakingChanges[0].resourceName).toBe('Status');
   });
 });
 
@@ -280,14 +280,14 @@ describe('argument changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe(
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe(
       '`Query.user` arg `name` removed from schema',
     );
-    expect(changes[0].type).toBe('ARG_REMOVED');
-    expect(changes[0].resourceName).toBe('user.name');
+    expect(breakingChanges[0].type).toBe('ARG_REMOVED');
+    expect(breakingChanges[0].resourceName).toBe('user.name');
   });
 
   it('should detect when a required argument is added', () => {
@@ -303,14 +303,14 @@ describe('argument changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe(
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe(
       'A required arg `name` on `Query.user` was added',
     );
-    expect(changes[0].type).toBe('REQUIRED_ARG_ADDED');
-    expect(changes[0].resourceName).toBe('Query.user');
+    expect(breakingChanges[0].type).toBe('REQUIRED_ARG_ADDED');
+    expect(breakingChanges[0].resourceName).toBe('Query.user');
   });
 
   it('should detect when an argument type changes in an incompatible way', () => {
@@ -326,14 +326,14 @@ describe('argument changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe(
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe(
       '`Query.user` arg `id` changed type from `String` to `Int`',
     );
-    expect(changes[0].type).toBe('ARG_CHANGED_KIND');
-    expect(changes[0].resourceName).toBe('user.id');
+    expect(breakingChanges[0].type).toBe('ARG_CHANGED_KIND');
+    expect(breakingChanges[0].resourceName).toBe('user.id');
   });
 
   it('should detect when an argument becomes required', () => {
@@ -349,14 +349,14 @@ describe('argument changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe(
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe(
       '`Query.user` arg `id` changed type from `String` to `String!`',
     );
-    expect(changes[0].type).toBe('ARG_BECAME_REQUIRED');
-    expect(changes[0].resourceName).toBe('user.id');
+    expect(breakingChanges[0].type).toBe('ARG_BECAME_REQUIRED');
+    expect(breakingChanges[0].resourceName).toBe('user.id');
   });
 
   it('should not detect breaking changes when optional arguments are added', () => {
@@ -372,9 +372,9 @@ describe('argument changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(0);
+    expect(breakingChanges).toHaveLength(0);
   });
 
   it('should not detect breaking changes when arguments become optional', () => {
@@ -390,9 +390,9 @@ describe('argument changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(0);
+    expect(breakingChanges).toHaveLength(0);
   });
 });
 
@@ -413,14 +413,14 @@ describe('enum value changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(1);
-    expect(changes[0].message).toBe(
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe(
       'Value `PENDING` removed from enum `Status`',
     );
-    expect(changes[0].type).toBe('VALUE_REMOVED_FROM_ENUM');
-    expect(changes[0].resourceName).toBe('Status.PENDING');
+    expect(breakingChanges[0].type).toBe('VALUE_REMOVED_FROM_ENUM');
+    expect(breakingChanges[0].resourceName).toBe('Status.PENDING');
   });
 
   it('should detect multiple enum value removals', () => {
@@ -439,17 +439,17 @@ describe('enum value changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(3);
-    expect(changes.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toHaveLength(3);
+    expect(breakingChanges.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         'Value `INACTIVE` removed from enum `Status`',
         'Value `PENDING` removed from enum `Status`',
         'Value `ARCHIVED` removed from enum `Status`',
       ]),
     );
-    expect(changes.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
+    expect(breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
       true,
     );
   });
@@ -477,16 +477,16 @@ describe('enum value changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(2);
-    expect(changes.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toHaveLength(2);
+    expect(breakingChanges.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         'Value `INACTIVE` removed from enum `Status`',
         'Value `LOW` removed from enum `Priority`',
       ]),
     );
-    expect(changes.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
+    expect(breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
       true,
     );
   });
@@ -507,9 +507,9 @@ describe('enum value changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
-    expect(changes).toHaveLength(0);
+    expect(breakingChanges).toHaveLength(0);
   });
 
   it('should not detect breaking changes when no enum values change', () => {
@@ -520,8 +520,58 @@ describe('enum value changes', () => {
       }
     `;
 
-    const changes = detectBreakingChanges(schema, schema);
+    const { breakingChanges } = detectBreakingChanges(schema, schema);
 
-    expect(changes).toHaveLength(0);
+    expect(breakingChanges).toHaveLength(0);
+  });
+});
+
+describe('dangerous changes', () => {
+  it('should detect when an optional argument is added', () => {
+    const fromSchema = gql`
+      type Query {
+        user(id: String): String
+      }
+    `;
+
+    const toSchema = gql`
+      type Query {
+        user(id: String, name: String): String
+      }
+    `;
+
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(1);
+    expect(dangerousChanges[0].message).toBe(
+      'An optional arg `name` on `Query.user` was added',
+    );
+    expect(dangerousChanges[0].type).toBe('OPTIONAL_ARG_ADDED');
+    expect(dangerousChanges[0].resourceName).toBe('Query.user');
+  });
+
+  it('should detect when an argument default value changes', () => {
+    const fromSchema = gql`
+      type Query {
+        user(id: String = "default"): String
+      }
+    `;
+
+    const toSchema = gql`
+      type Query {
+        user(id: String = "new_default"): String
+      }
+    `;
+
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(1);
+    expect(dangerousChanges[0].message).toBe(
+      '`Query.user` arg `id` has changed defaultValue',
+    );
+    expect(dangerousChanges[0].type).toBe('ARG_DEFAULT_VALUE_CHANGE');
+    expect(dangerousChanges[0].resourceName).toBe('user.id');
   });
 });
