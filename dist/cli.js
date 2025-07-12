@@ -12253,29 +12253,21 @@ const isDeprecated = (node) => !!node?.directives?.some((directive) => directive
  * Deep equality comparison for default values
  */
 function isDefaultValueEqual(oldValue, newValue) {
-    if (oldValue === newValue) {
+    if (oldValue === newValue)
         return true;
-    }
-    if (oldValue == null || newValue == null) {
-        return oldValue === newValue;
-    }
-    if (typeof oldValue !== typeof newValue) {
+    if (oldValue == null || newValue == null)
         return false;
-    }
-    if (Array.isArray(oldValue) && Array.isArray(newValue)) {
-        if (oldValue.length !== newValue.length) {
-            return false;
-        }
-        return oldValue.every((item, index) => isDefaultValueEqual(item, newValue[index]));
-    }
+    if (typeof oldValue !== typeof newValue)
+        return false;
+    if (Array.isArray(oldValue) && Array.isArray(newValue))
+        return (oldValue.length === newValue.length &&
+            oldValue.every((item, index) => isDefaultValueEqual(item, newValue[index])));
     if (typeof oldValue === 'object' && typeof newValue === 'object') {
         const oldKeys = Object.keys(oldValue);
         const newKeys = Object.keys(newValue);
-        if (oldKeys.length !== newKeys.length) {
-            return false;
-        }
-        return oldKeys.every((key) => newKeys.includes(key) &&
-            isDefaultValueEqual(oldValue[key], newValue[key]));
+        return (oldKeys.length === newKeys.length &&
+            oldKeys.every((key) => newKeys.includes(key) &&
+                isDefaultValueEqual(oldValue[key], newValue[key])));
     }
     return false;
 }
@@ -12297,7 +12289,7 @@ function findRemovedTypes(oldSchema, newSchema) {
         }
         if (!newTypeMap[typeName]) {
             breakingChanges.push({
-                loc: getLocation(oldType.astNode),
+                loc: undefined,
                 message: `\`${typeName}\` removed from schema`,
                 resourceName: typeName,
                 type: 'TYPE_REMOVED',
@@ -12372,7 +12364,7 @@ function findFieldsThatChangedTypeOnObjectOrInterfaceTypes(oldSchema, newSchema)
             // Check if the field is missing on the type in the new schema.
             if (!(fieldName in newTypeFieldsDef)) {
                 breakingChanges.push({
-                    loc: getLocation(oldTypeFieldsDef[fieldName].astNode),
+                    loc: getLocation(newType.astNode),
                     resourceName: `${typeName}.${fieldName}`,
                     type: 'FIELD_REMOVED',
                     message: `\`${typeName}.${fieldName}\` removed from schema`,
