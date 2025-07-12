@@ -1,1 +1,1 @@
-yarn biome format --write . && yarn biome check --write .
+yarn lint-staged
