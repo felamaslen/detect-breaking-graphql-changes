@@ -6,19 +6,18 @@
   "scripts": {
     "build": "ncc build src/index.ts -o dist",
     "test": "vitest",
-    "lint": "eslint src/**/*.ts",
-    "package": "yarn build"
+    "lint": "biome lint src/",
+    "format": "biome format --write src/",
+    "check": "biome check --write src/",
+    "typecheck": "tsc --noEmit",
+    "package": "yarn build",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/felamaslen/detect-breaking-graphql-changes.git"
   },
-  "keywords": [
-    "github-action",
-    "graphql",
-    "schema",
-    "breaking-changes"
-  ],
+  "keywords": ["github-action", "graphql", "schema", "breaking-changes"],
   "author": "felamaslen",
   "license": "MIT",
   "dependencies": {
@@ -27,12 +26,11 @@
     "graphql": "^16.8.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@types/node": "^20.8.0",
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
-    "@typescript-eslint/parser": "^6.7.0",
     "@vercel/ncc": "^0.38.0",
-    "eslint": "^8.50.0",
     "fake-tag": "^2.0.0",
+    "husky": "^9.0.0",
     "vitest": "^1.0.0",
     "typescript": "^5.2.0"
   },
