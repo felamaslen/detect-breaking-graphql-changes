@@ -26,3 +26,12 @@ jobs:
 ```
 
 This will detect any dangerous and breaking changes on the version of `schema.graphql` between `base_ref` and `HEAD`.
+
+## Development
+
+To get set up, clone the repo, and then run:
+
+1. `asdf install`
+2. `corepack enable`
+3. `asdf reshim`
+4. `yarn`
