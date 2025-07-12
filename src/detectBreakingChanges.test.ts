@@ -25,6 +25,7 @@ describe('field removal', () => {
     expect(breakingChanges[0].message).toBe('`User.email` removed from schema');
     expect(breakingChanges[0].type).toBe('FIELD_REMOVED');
     expect(breakingChanges[0].resourceName).toBe('User.email');
+    expect(breakingChanges[0].loc).toBe('2:7');
   });
 
   it('should detect multiple field removals from the same type', () => {
@@ -46,14 +47,31 @@ describe('field removal', () => {
     const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(3);
-    expect(breakingChanges.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toStrictEqual(
       expect.arrayContaining([
-        '`User.name` removed from schema',
-        '`User.email` removed from schema',
-        '`User.age` removed from schema',
+        {
+          type: 'FIELD_REMOVED',
+          message: '`User.name` removed from schema',
+          resourceName: 'User.name',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
+        {
+          type: 'FIELD_REMOVED',
+          message: '`User.email` removed from schema',
+          resourceName: 'User.email',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
+        {
+          type: 'FIELD_REMOVED',
+          message: '`User.age` removed from schema',
+          resourceName: 'User.age',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
       ]),
     );
-    expect(breakingChanges.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
   });
 
   it('should detect field removals from multiple types', () => {
@@ -84,13 +102,24 @@ describe('field removal', () => {
     const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(2);
-    expect(breakingChanges.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toStrictEqual(
       expect.arrayContaining([
-        '`User.name` removed from schema',
-        '`Post.content` removed from schema',
+        {
+          type: 'FIELD_REMOVED',
+          message: '`User.name` removed from schema',
+          resourceName: 'User.name',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
+        {
+          type: 'FIELD_REMOVED',
+          message: '`Post.content` removed from schema',
+          resourceName: 'Post.content',
+          loc: '6:7',
+          wasDeprecated: false,
+        },
       ]),
     );
-    expect(breakingChanges.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
   });
 
   it('should not detect breaking changes when no fields are removed', () => {
@@ -194,13 +223,24 @@ describe('type removal', () => {
     const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(2);
-    expect(breakingChanges.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toStrictEqual(
       expect.arrayContaining([
-        '`Post` removed from schema',
-        '`Comment` removed from schema',
+        {
+          type: 'TYPE_REMOVED',
+          message: '`Post` removed from schema',
+          resourceName: 'Post',
+          loc: undefined,
+          wasDeprecated: false,
+        },
+        {
+          type: 'TYPE_REMOVED',
+          message: '`Comment` removed from schema',
+          resourceName: 'Comment',
+          loc: undefined,
+          wasDeprecated: false,
+        },
       ]),
     );
-    expect(breakingChanges.every((c) => c.type === 'TYPE_REMOVED')).toBe(true);
   });
 
   it('should not detect built-in scalar type removals', () => {
@@ -248,6 +288,7 @@ describe('type kind changes', () => {
     );
     expect(breakingChanges[0].type).toBe('TYPE_CHANGED_KIND');
     expect(breakingChanges[0].resourceName).toBe('User');
+    expect(breakingChanges[0].loc).toBe('2:14');
   });
 
   it('should detect when a type changes from enum to object', () => {
@@ -272,6 +313,7 @@ describe('type kind changes', () => {
     );
     expect(breakingChanges[0].type).toBe('TYPE_CHANGED_KIND');
     expect(breakingChanges[0].resourceName).toBe('Status');
+    expect(breakingChanges[0].loc).toBe('2:7');
   });
 });
 
@@ -297,6 +339,7 @@ describe('argument changes', () => {
     );
     expect(breakingChanges[0].type).toBe('ARG_REMOVED');
     expect(breakingChanges[0].resourceName).toBe('user.name');
+    expect(breakingChanges[0].loc).toBe('3:27');
   });
 
   it('should detect when a required argument is added', () => {
@@ -320,6 +363,7 @@ describe('argument changes', () => {
     );
     expect(breakingChanges[0].type).toBe('REQUIRED_ARG_ADDED');
     expect(breakingChanges[0].resourceName).toBe('Query.user');
+    expect(breakingChanges[0].loc).toBe('3:38');
   });
 
   it('should detect when an argument type changes in an incompatible way', () => {
@@ -343,6 +387,7 @@ describe('argument changes', () => {
     );
     expect(breakingChanges[0].type).toBe('ARG_CHANGED_KIND');
     expect(breakingChanges[0].resourceName).toBe('user.id');
+    expect(breakingChanges[0].loc).toBe('3:18');
   });
 
   it('should detect when an argument becomes required', () => {
@@ -366,6 +411,7 @@ describe('argument changes', () => {
     );
     expect(breakingChanges[0].type).toBe('ARG_BECAME_REQUIRED');
     expect(breakingChanges[0].resourceName).toBe('user.id');
+    expect(breakingChanges[0].loc).toBe('3:24');
   });
 
   it('should not detect breaking changes when optional arguments are added', () => {
@@ -464,6 +510,7 @@ describe('enum value changes', () => {
     );
     expect(breakingChanges[0].type).toBe('VALUE_REMOVED_FROM_ENUM');
     expect(breakingChanges[0].resourceName).toBe('Status.PENDING');
+    expect(breakingChanges[0].loc).toBe('2:7');
   });
 
   it('should detect multiple enum value removals', () => {
@@ -485,16 +532,31 @@ describe('enum value changes', () => {
     const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(3);
-    expect(breakingChanges.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toStrictEqual(
       expect.arrayContaining([
-        'Value `INACTIVE` removed from enum `Status`',
-        'Value `PENDING` removed from enum `Status`',
-        'Value `ARCHIVED` removed from enum `Status`',
+        {
+          type: 'VALUE_REMOVED_FROM_ENUM',
+          message: 'Value `INACTIVE` removed from enum `Status`',
+          resourceName: 'Status.INACTIVE',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
+        {
+          type: 'VALUE_REMOVED_FROM_ENUM',
+          message: 'Value `PENDING` removed from enum `Status`',
+          resourceName: 'Status.PENDING',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
+        {
+          type: 'VALUE_REMOVED_FROM_ENUM',
+          message: 'Value `ARCHIVED` removed from enum `Status`',
+          resourceName: 'Status.ARCHIVED',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
       ]),
     );
-    expect(
-      breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM'),
-    ).toBe(true);
   });
 
   it('should detect enum value removals from multiple enums', () => {
@@ -523,15 +585,24 @@ describe('enum value changes', () => {
     const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(2);
-    expect(breakingChanges.map((c) => c.message)).toEqual(
+    expect(breakingChanges).toStrictEqual(
       expect.arrayContaining([
-        'Value `INACTIVE` removed from enum `Status`',
-        'Value `LOW` removed from enum `Priority`',
+        {
+          type: 'VALUE_REMOVED_FROM_ENUM',
+          message: 'Value `INACTIVE` removed from enum `Status`',
+          resourceName: 'Status.INACTIVE',
+          loc: '2:7',
+          wasDeprecated: false,
+        },
+        {
+          type: 'VALUE_REMOVED_FROM_ENUM',
+          message: 'Value `LOW` removed from enum `Priority`',
+          resourceName: 'Priority.LOW',
+          loc: '6:7',
+          wasDeprecated: false,
+        },
       ]),
     );
-    expect(
-      breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM'),
-    ).toBe(true);
   });
 
   it('should not detect breaking changes when enum values are added', () => {
@@ -603,6 +674,7 @@ describe('dangerous changes', () => {
     );
     expect(dangerousChanges[0].type).toBe('OPTIONAL_ARG_ADDED');
     expect(dangerousChanges[0].resourceName).toBe('Query.user');
+    expect(dangerousChanges[0].loc).toBe('3:32');
   });
 
   it('should detect when an argument default value changes', () => {
@@ -630,5 +702,6 @@ describe('dangerous changes', () => {
     );
     expect(dangerousChanges[0].type).toBe('ARG_DEFAULT_VALUE_CHANGE');
     expect(dangerousChanges[0].resourceName).toBe('user.id');
+    expect(dangerousChanges[0].loc).toBe('3:27');
   });
 });
