@@ -5,6 +5,7 @@ import {
   type GraphQLNamedType,
   type GraphQLSchema,
   type GraphQLType,
+  buildSchema,
   isEnumType,
   isInputObjectType,
   isInterfaceType,
@@ -492,14 +493,17 @@ function findValuesRemovedFromEnums(
  * Detect dangerous and breaking changes from one version of a GraphQL schema to another
  */
 export function detectBreakingChanges(
-  from: GraphQLSchema,
-  to: GraphQLSchema,
+  from: string,
+  to: string,
 ): BreakingChange[] {
+  const fromSchema = buildSchema(from);
+  const toSchema = buildSchema(to);
+  
   return [
-    ...findRemovedTypes(from, to),
-    ...findTypesThatChangedKind(from, to),
-    ...findFieldsThatChangedTypeOnObjectOrInterfaceTypes(from, to),
-    ...findArgChanges(from, to).breakingChanges,
-    ...findValuesRemovedFromEnums(from, to),
+    ...findRemovedTypes(fromSchema, toSchema),
+    ...findTypesThatChangedKind(fromSchema, toSchema),
+    ...findFieldsThatChangedTypeOnObjectOrInterfaceTypes(fromSchema, toSchema),
+    ...findArgChanges(fromSchema, toSchema).breakingChanges,
+    ...findValuesRemovedFromEnums(fromSchema, toSchema),
   ].filter(changes => !changes.wasNotImplemented);
 }

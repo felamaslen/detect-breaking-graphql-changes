@@ -1,23 +1,23 @@
-import { buildSchema } from 'graphql';
+import gql from 'fake-tag';
 
-import { detectBreakingChanges } from './graphql-inspector';
+import { detectBreakingChanges } from './detectBreakingChanges';
 
 describe('field removal', () => {
   it('should detect when a field is removed from an object type', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         name: String
         email: String
       }
-    `);
+    `;
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type User {
         id: String
         name: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -28,7 +28,7 @@ describe('field removal', () => {
   });
 
   it('should detect multiple field removals from the same type', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         name: String
@@ -37,11 +37,11 @@ describe('field removal', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type User {
         id: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -57,7 +57,7 @@ describe('field removal', () => {
   });
 
   it('should detect field removals from multiple types', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         name: String
@@ -70,7 +70,7 @@ describe('field removal', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type User {
         id: String
       }
@@ -79,7 +79,7 @@ describe('field removal', () => {
         id: String
         title: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -94,12 +94,12 @@ describe('field removal', () => {
   });
 
   it('should not detect breaking changes when no fields are removed', () => {
-    const schema = buildSchema(`
+    const schema = gql`
       type User {
         id: String
         name: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(schema, schema);
 
@@ -107,20 +107,20 @@ describe('field removal', () => {
   });
 
   it('should not detect breaking changes when fields are added', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         name: String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type User {
         id: String
         name: String
         email: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -130,7 +130,7 @@ describe('field removal', () => {
 
 describe('type removal', () => {
   it('should detect when a type is completely removed', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         name: String
@@ -142,12 +142,12 @@ describe('type removal', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type User {
         id: String
         name: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -158,7 +158,7 @@ describe('type removal', () => {
   });
 
   it('should detect multiple type removals', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         name: String
@@ -175,12 +175,12 @@ describe('type removal', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type User {
         id: String
         name: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -195,7 +195,7 @@ describe('type removal', () => {
   });
 
   it('should not detect built-in scalar type removals', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         age: Int
@@ -204,11 +204,11 @@ describe('type removal', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type User {
         id: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -220,16 +220,16 @@ describe('type removal', () => {
 
 describe('type kind changes', () => {
   it('should detect when a type changes from object to scalar', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type User {
         id: String
         name: String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       scalar User
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -242,18 +242,18 @@ describe('type kind changes', () => {
   });
 
   it('should detect when a type changes from enum to object', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       enum Status {
         ACTIVE
         INACTIVE
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type Status {
         value: String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -268,17 +268,17 @@ describe('type kind changes', () => {
 
 describe('argument changes', () => {
   it('should detect when an argument is removed', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type Query {
         user(id: String, name: String): String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type Query {
         user(id: String): String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -291,17 +291,17 @@ describe('argument changes', () => {
   });
 
   it('should detect when a required argument is added', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type Query {
         user(id: String): String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type Query {
         user(id: String, name: String!): String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -314,17 +314,17 @@ describe('argument changes', () => {
   });
 
   it('should detect when an argument type changes in an incompatible way', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type Query {
         user(id: String): String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type Query {
         user(id: Int): String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -337,17 +337,17 @@ describe('argument changes', () => {
   });
 
   it('should detect when an argument becomes required', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type Query {
         user(id: String): String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type Query {
         user(id: String!): String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -360,17 +360,17 @@ describe('argument changes', () => {
   });
 
   it('should not detect breaking changes when optional arguments are added', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type Query {
         user(id: String): String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type Query {
         user(id: String, name: String): String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -378,17 +378,17 @@ describe('argument changes', () => {
   });
 
   it('should not detect breaking changes when arguments become optional', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       type Query {
         user(id: String!): String
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       type Query {
         user(id: String): String
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -398,7 +398,7 @@ describe('argument changes', () => {
 
 describe('enum value changes', () => {
   it('should detect when an enum value is removed', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       enum Status {
         ACTIVE
         INACTIVE
@@ -406,12 +406,12 @@ describe('enum value changes', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       enum Status {
         ACTIVE
         INACTIVE
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -424,7 +424,7 @@ describe('enum value changes', () => {
   });
 
   it('should detect multiple enum value removals', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       enum Status {
         ACTIVE
         INACTIVE
@@ -433,11 +433,11 @@ describe('enum value changes', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       enum Status {
         ACTIVE
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -453,7 +453,7 @@ describe('enum value changes', () => {
   });
 
   it('should detect enum value removals from multiple enums', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       enum Status {
         ACTIVE
         INACTIVE
@@ -465,7 +465,7 @@ describe('enum value changes', () => {
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       enum Status {
         ACTIVE
       }
@@ -473,7 +473,7 @@ describe('enum value changes', () => {
       enum Priority {
         HIGH
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -488,20 +488,20 @@ describe('enum value changes', () => {
   });
 
   it('should not detect breaking changes when enum values are added', () => {
-    const fromSchema = buildSchema(`
+    const fromSchema = gql`
       enum Status {
         ACTIVE
         INACTIVE
       }
     `);
 
-    const toSchema = buildSchema(`
+    const toSchema = gql`
       enum Status {
         ACTIVE
         INACTIVE
         PENDING
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
@@ -509,12 +509,12 @@ describe('enum value changes', () => {
   });
 
   it('should not detect breaking changes when no enum values change', () => {
-    const schema = buildSchema(`
+    const schema = gql`
       enum Status {
         ACTIVE
         INACTIVE
       }
-    `);
+    `;
 
     const changes = detectBreakingChanges(schema, schema);
 

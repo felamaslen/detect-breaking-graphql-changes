@@ -2,8 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { buildSchema } from 'graphql';
-import { detectBreakingChanges } from '../scripts/graphql-inspector';
+import { detectBreakingChanges } from '../scripts/detectBreakingChanges';
 
 async function run(): Promise<void> {
   try {
@@ -20,7 +19,6 @@ async function run(): Promise<void> {
 
     // Get current schema
     const currentSchemaContent = readFileSync(join(process.cwd(), schemaPath), 'utf8');
-    const currentSchema = buildSchema(currentSchemaContent);
 
     // Get base schema from git
     const { data: baseFile } = await octokit.rest.repos.getContent({
@@ -35,10 +33,9 @@ async function run(): Promise<void> {
     }
 
     const baseSchemaContent = Buffer.from(baseFile.content, 'base64').toString('utf8');
-    const baseSchema = buildSchema(baseSchemaContent);
 
     // Compare schemas using our custom GraphQL inspector
-    const breakingChanges = detectBreakingChanges(baseSchema, currentSchema);
+    const breakingChanges = detectBreakingChanges(baseSchemaContent, currentSchemaContent);
     
     // Filter breaking changes (dangerous changes not implemented yet in our inspector)
     const dangerousChanges: any[] = [];
