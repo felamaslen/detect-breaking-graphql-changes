@@ -1,0 +1,26 @@
+name: 'Detect Breaking GraphQL Changes'
+description: 'GitHub Action to detect breaking changes on a GraphQL schema'
+author: 'felamaslen'
+
+inputs:
+  base_ref:
+    description: 'Base reference to compare against'
+    required: true
+  schema:
+    description: 'Path to the GraphQL schema file'
+    required: true
+    default: 'schema.graphql'
+
+outputs:
+  breaking_changes:
+    description: 'JSON array of breaking changes found'
+  dangerous_changes:
+    description: 'JSON array of dangerous changes found'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'alert-triangle'
+  color: 'red'
