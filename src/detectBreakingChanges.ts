@@ -227,7 +227,7 @@ function findFieldsThatChangedTypeOnObjectOrInterfaceTypes(
       // Check if the field is missing on the type in the new schema.
       if (!(fieldName in newTypeFieldsDef)) {
         breakingChanges.push({
-          loc: getLocation(oldTypeFieldsDef[fieldName].astNode),
+          loc: getLocation(newType.astNode),
           resourceName: `${typeName}.${fieldName}`,
           type: 'FIELD_REMOVED',
           message: `\`${typeName}.${fieldName}\` removed from schema`,

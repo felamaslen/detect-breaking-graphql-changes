@@ -210,8 +210,8 @@ describe('GitHub Action', () => {
       '[Breaking change] `User.email` removed from schema',
       {
         file: 'schema.graphql',
-        startLine: 5,
-        startColumn: 16,
+        startLine: 2,
+        startColumn: 7,
       },
     );
     expect(mockCore.setFailed).toHaveBeenCalledWith(
