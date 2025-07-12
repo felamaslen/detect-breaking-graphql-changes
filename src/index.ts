@@ -4,7 +4,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { detectBreakingChanges } from './detectBreakingChanges';
 
-async function run(): Promise<void> {
+export async function run(): Promise<void> {
   try {
     // Get inputs
     const baseRef = core.getInput('base_ref', { required: true });
@@ -54,16 +54,24 @@ async function run(): Promise<void> {
     core.info(`Found ${dangerousChanges.length} dangerous changes`);
 
     if (breakingChanges.length > 0) {
-      core.warning('Breaking changes detected:');
       breakingChanges.forEach((change) => {
-        core.warning(`- ${change.message}`);
+        const [line, col] = change.loc.split(':').map(Number);
+        core.error(`[Breaking change] ${change.message}`, {
+          file: schemaPath,
+          startLine: line || undefined,
+          startColumn: col || undefined,
+        });
       });
     }
 
     if (dangerousChanges.length > 0) {
-      core.warning('Dangerous changes detected:');
       dangerousChanges.forEach((change) => {
-        core.warning(`- ${change.message}`);
+        const [line, col] = change.loc.split(':').map(Number);
+        core.warning(`[Dangerous change] ${change.message}`, {
+          file: schemaPath,
+          startLine: line || undefined,
+          startColumn: col || undefined,
+        });
       });
     }
 
@@ -78,4 +86,7 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+// Only run when this file is executed directly (not imported)
+if (require.main === module) {
+  run();
+}

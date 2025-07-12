@@ -449,9 +449,9 @@ describe('enum value changes', () => {
         'Value `ARCHIVED` removed from enum `Status`',
       ]),
     );
-    expect(breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
-      true,
-    );
+    expect(
+      breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM'),
+    ).toBe(true);
   });
 
   it('should detect enum value removals from multiple enums', () => {
@@ -486,9 +486,9 @@ describe('enum value changes', () => {
         'Value `LOW` removed from enum `Priority`',
       ]),
     );
-    expect(breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
-      true,
-    );
+    expect(
+      breakingChanges.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM'),
+    ).toBe(true);
   });
 
   it('should not detect breaking changes when enum values are added', () => {
@@ -540,7 +540,10 @@ describe('dangerous changes', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      fromSchema,
+      toSchema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(1);
@@ -564,7 +567,10 @@ describe('dangerous changes', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      fromSchema,
+      toSchema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(1);
