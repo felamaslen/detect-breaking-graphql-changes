@@ -1,6 +1,7 @@
 import {
   type ASTNode,
   type DirectiveNode,
+  type GraphQLFieldMap,
   type GraphQLNamedType,
   type GraphQLSchema,
   type GraphQLType,
@@ -12,6 +13,7 @@ import {
   isNamedType,
   isNonNullType,
   isObjectType,
+  isRequiredArgument,
   isScalarType,
   isSpecifiedScalarType,
   isUnionType,
@@ -281,6 +283,173 @@ function isChangeSafeForObjectOrInterfaceField(
   return false;
 }
 
+function isChangeSafeForInputObjectFieldOrFieldArg(
+  oldType: GraphQLType,
+  newType: GraphQLType,
+): boolean {
+  if (isListType(oldType)) {
+    // if they're both lists, make sure the underlying types are compatible
+    return (
+      isListType(newType) &&
+      isChangeSafeForInputObjectFieldOrFieldArg(oldType.ofType, newType.ofType)
+    );
+  }
+  if (isNonNullType(oldType)) {
+    return (
+      // if they're both non-null, make sure the underlying types are
+      // compatible
+      (isNonNullType(newType) &&
+        isChangeSafeForInputObjectFieldOrFieldArg(
+          oldType.ofType,
+          newType.ofType,
+        )) ||
+      // moving from non-null to nullable of the same underlying type is safe
+      (!isNonNullType(newType) &&
+        isChangeSafeForInputObjectFieldOrFieldArg(oldType.ofType, newType))
+    );
+  }
+  if (isNamedType(oldType)) {
+    // if they're both named types, see if their names are equivalent
+    return isNamedType(newType) && oldType.name === newType.name;
+  }
+  return false;
+}
+
+/**
+ * Given two schemas, returns an Array containing descriptions of any
+ * breaking or dangerous changes in the newSchema related to arguments
+ * (such as removal or change of type of an argument, or a change in an
+ * argument's default value).
+ */
+function findArgChanges(
+  oldSchema: GraphQLSchema,
+  newSchema: GraphQLSchema,
+): {
+  breakingChanges: BreakingChange[];
+  dangerousChanges: DangerousChange[];
+} {
+  const oldTypeMap = oldSchema.getTypeMap();
+  const newTypeMap = newSchema.getTypeMap();
+
+  const breakingChanges: BreakingChange[] = [];
+  const dangerousChanges: DangerousChange[] = [];
+
+  for (const typeName of Object.keys(oldTypeMap)) {
+    const oldType = oldTypeMap[typeName];
+    const newType = newTypeMap[typeName];
+    if (
+      !(isObjectType(oldType) || isInterfaceType(oldType)) ||
+      !(isObjectType(newType) || isInterfaceType(newType)) ||
+      newType.constructor !== oldType.constructor
+    ) {
+      continue;
+    }
+
+    const oldTypeFields: GraphQLFieldMap<any, any> = oldType.getFields();
+    const newTypeFields: GraphQLFieldMap<any, any> = newType.getFields();
+
+    for (const fieldName of Object.keys(oldTypeFields)) {
+      if (!newTypeFields[fieldName]) {
+        continue;
+      }
+
+      for (const oldArgDef of oldTypeFields[fieldName].args) {
+        const newArgs = newTypeFields[fieldName].args;
+        const newArgDef = newArgs.find(arg => arg.name === oldArgDef.name);
+
+        // Arg not present
+        if (!newArgDef) {
+          breakingChanges.push({
+            loc: getLocation(newTypeFields[fieldName].astNode),
+            message: `\`${oldType.name}.${fieldName}\` arg \`${oldArgDef.name}\` removed from schema`,
+            resourceName: `${fieldName}.${oldArgDef.name}`,
+            type: 'ARG_REMOVED',
+            wasDeprecated: isDeprecated(oldArgDef.astNode),
+            wasNotImplemented: isNotImplemented(oldArgDef.astNode),
+          });
+        } else {
+          const isSafe = isChangeSafeForInputObjectFieldOrFieldArg(
+            oldArgDef.type,
+            newArgDef.type,
+          );
+          if (!isSafe) {
+            const becameRequired =
+              oldArgDef.name === newArgDef.name &&
+              isNonNullType(newArgDef.type) &&
+              !isNonNullType(oldArgDef.type);
+
+            const wasRequiredByDirective =
+              oldArgDef.astNode?.directives?.some(
+                directive => directive.name.value === 'required',
+              ) ?? undefined;
+
+            breakingChanges.push({
+              loc: getLocation(newArgDef.astNode),
+              message: `\`${oldType.name}.${fieldName}\` arg \`${
+                oldArgDef.name
+              }\` changed type from \`${oldArgDef.type.toString()}\` to \`${newArgDef.type.toString()}\``,
+              resourceName: `${fieldName}.${oldArgDef.name}`,
+              type: becameRequired ? 'ARG_BECAME_REQUIRED' : 'ARG_CHANGED_KIND',
+              wasDeprecated: isDeprecated(oldArgDef.astNode),
+              wasNotImplemented: isNotImplemented(oldArgDef.astNode),
+              wasRequiredByDirective,
+            });
+          } else if (
+            oldArgDef.defaultValue !== undefined &&
+            oldArgDef.defaultValue !== newArgDef.defaultValue
+          ) {
+            dangerousChanges.push({
+              loc: getLocation(newArgDef.astNode),
+              resourceName: `${fieldName}.${oldArgDef.name}`,
+              type: 'ARG_DEFAULT_VALUE_CHANGE',
+              message: `\`${oldType.name}.${fieldName}\` arg \`${oldArgDef.name}\` has changed defaultValue`,
+              wasDeprecated: isDeprecated(oldType.astNode),
+              wasNotImplemented: isNotImplemented(oldType.astNode),
+            });
+          }
+        }
+      }
+      // Check if arg was added to the field
+      for (const newArgDef of newTypeFields[fieldName].args) {
+        const oldArgs = oldTypeFields[fieldName].args;
+        const oldArgDef = oldArgs.find(arg => arg.name === newArgDef.name);
+        if (!oldArgDef) {
+          const argName = newArgDef.name;
+
+          if (isRequiredArgument(newArgDef)) {
+            breakingChanges.push({
+              loc: getLocation(newArgDef.astNode),
+              resourceName: `${typeName}.${fieldName}`,
+              type: 'REQUIRED_ARG_ADDED',
+              message: `A required arg \`${argName}\` on \`${typeName}.${fieldName}\` was added`,
+              wasDeprecated: isDeprecated(oldTypeFields[fieldName].astNode),
+              wasNotImplemented: isNotImplemented(
+                oldTypeFields[fieldName].astNode,
+              ),
+            });
+          } else {
+            dangerousChanges.push({
+              loc: getLocation(newArgDef.astNode),
+              resourceName: `${typeName}.${fieldName}`,
+              type: 'OPTIONAL_ARG_ADDED',
+              message: `An optional arg \`${argName}\` on \`${typeName}.${fieldName}\` was added`,
+              wasDeprecated: isDeprecated(oldTypeFields[fieldName].astNode),
+              wasNotImplemented: isNotImplemented(
+                oldTypeFields[fieldName].astNode,
+              ),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return {
+    breakingChanges,
+    dangerousChanges,
+  };
+}
+
 /**
  * Detect dangerous and breaking changes from one version of a GraphQL schema to another
  */
@@ -292,5 +461,6 @@ export function detectBreakingChanges(
     ...findRemovedTypes(from, to),
     ...findTypesThatChangedKind(from, to),
     ...findFieldsThatChangedTypeOnObjectOrInterfaceTypes(from, to),
+    ...findArgChanges(from, to).breakingChanges,
   ].filter(changes => !changes.wasNotImplemented);
 }

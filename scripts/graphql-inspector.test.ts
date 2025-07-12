@@ -265,3 +265,133 @@ describe('type kind changes', () => {
     expect(changes[0].resourceName).toBe('Status');
   });
 });
+
+describe('argument changes', () => {
+  it('should detect when an argument is removed', () => {
+    const fromSchema = buildSchema(`
+      type Query {
+        user(id: String, name: String): String
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      type Query {
+        user(id: String): String
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(1);
+    expect(changes[0].message).toBe(
+      '`Query.user` arg `name` removed from schema',
+    );
+    expect(changes[0].type).toBe('ARG_REMOVED');
+    expect(changes[0].resourceName).toBe('user.name');
+  });
+
+  it('should detect when a required argument is added', () => {
+    const fromSchema = buildSchema(`
+      type Query {
+        user(id: String): String
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      type Query {
+        user(id: String, name: String!): String
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(1);
+    expect(changes[0].message).toBe(
+      'A required arg `name` on `Query.user` was added',
+    );
+    expect(changes[0].type).toBe('REQUIRED_ARG_ADDED');
+    expect(changes[0].resourceName).toBe('Query.user');
+  });
+
+  it('should detect when an argument type changes in an incompatible way', () => {
+    const fromSchema = buildSchema(`
+      type Query {
+        user(id: String): String
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      type Query {
+        user(id: Int): String
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(1);
+    expect(changes[0].message).toBe(
+      '`Query.user` arg `id` changed type from `String` to `Int`',
+    );
+    expect(changes[0].type).toBe('ARG_CHANGED_KIND');
+    expect(changes[0].resourceName).toBe('user.id');
+  });
+
+  it('should detect when an argument becomes required', () => {
+    const fromSchema = buildSchema(`
+      type Query {
+        user(id: String): String
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      type Query {
+        user(id: String!): String
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(1);
+    expect(changes[0].message).toBe(
+      '`Query.user` arg `id` changed type from `String` to `String!`',
+    );
+    expect(changes[0].type).toBe('ARG_BECAME_REQUIRED');
+    expect(changes[0].resourceName).toBe('user.id');
+  });
+
+  it('should not detect breaking changes when optional arguments are added', () => {
+    const fromSchema = buildSchema(`
+      type Query {
+        user(id: String): String
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      type Query {
+        user(id: String, name: String): String
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(0);
+  });
+
+  it('should not detect breaking changes when arguments become optional', () => {
+    const fromSchema = buildSchema(`
+      type Query {
+        user(id: String!): String
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      type Query {
+        user(id: String): String
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(0);
+  });
+});
