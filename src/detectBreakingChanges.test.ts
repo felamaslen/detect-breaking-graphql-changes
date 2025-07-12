@@ -46,14 +46,14 @@ describe('field removal', () => {
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
     expect(changes).toHaveLength(3);
-    expect(changes.map(c => c.message)).toEqual(
+    expect(changes.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         '`User.name` removed from schema',
         '`User.email` removed from schema',
         '`User.age` removed from schema',
       ]),
     );
-    expect(changes.every(c => c.type === 'FIELD_REMOVED')).toBe(true);
+    expect(changes.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
   });
 
   it('should detect field removals from multiple types', () => {
@@ -84,13 +84,13 @@ describe('field removal', () => {
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
     expect(changes).toHaveLength(2);
-    expect(changes.map(c => c.message)).toEqual(
+    expect(changes.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         '`User.name` removed from schema',
         '`Post.content` removed from schema',
       ]),
     );
-    expect(changes.every(c => c.type === 'FIELD_REMOVED')).toBe(true);
+    expect(changes.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
   });
 
   it('should not detect breaking changes when no fields are removed', () => {
@@ -185,13 +185,13 @@ describe('type removal', () => {
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
     expect(changes).toHaveLength(2);
-    expect(changes.map(c => c.message)).toEqual(
+    expect(changes.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         '`Post` removed from schema',
         '`Comment` removed from schema',
       ]),
     );
-    expect(changes.every(c => c.type === 'TYPE_REMOVED')).toBe(true);
+    expect(changes.every((c) => c.type === 'TYPE_REMOVED')).toBe(true);
   });
 
   it('should not detect built-in scalar type removals', () => {
@@ -213,8 +213,8 @@ describe('type removal', () => {
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
     // Should only detect field removals, not scalar type removals
-    expect(changes.every(c => c.type === 'FIELD_REMOVED')).toBe(true);
-    expect(changes.some(c => c.type === 'TYPE_REMOVED')).toBe(false);
+    expect(changes.every((c) => c.type === 'FIELD_REMOVED')).toBe(true);
+    expect(changes.some((c) => c.type === 'TYPE_REMOVED')).toBe(false);
   });
 });
 
@@ -442,14 +442,16 @@ describe('enum value changes', () => {
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
     expect(changes).toHaveLength(3);
-    expect(changes.map(c => c.message)).toEqual(
+    expect(changes.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         'Value `INACTIVE` removed from enum `Status`',
         'Value `PENDING` removed from enum `Status`',
         'Value `ARCHIVED` removed from enum `Status`',
       ]),
     );
-    expect(changes.every(c => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(true);
+    expect(changes.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
+      true,
+    );
   });
 
   it('should detect enum value removals from multiple enums', () => {
@@ -478,13 +480,15 @@ describe('enum value changes', () => {
     const changes = detectBreakingChanges(fromSchema, toSchema);
 
     expect(changes).toHaveLength(2);
-    expect(changes.map(c => c.message)).toEqual(
+    expect(changes.map((c) => c.message)).toEqual(
       expect.arrayContaining([
         'Value `INACTIVE` removed from enum `Status`',
         'Value `LOW` removed from enum `Priority`',
       ]),
     );
-    expect(changes.every(c => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(true);
+    expect(changes.every((c) => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(
+      true,
+    );
   });
 
   it('should not detect breaking changes when enum values are added', () => {

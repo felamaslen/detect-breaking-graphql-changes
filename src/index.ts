@@ -1,7 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { detectBreakingChanges } from './detectBreakingChanges';
 
 async function run(): Promise<void> {
@@ -9,7 +9,7 @@ async function run(): Promise<void> {
     // Get inputs
     const baseRef = core.getInput('base_ref', { required: true });
     const schemaPath = core.getInput('schema', { required: true });
-    
+
     core.info(`Comparing schema changes from ${baseRef} to HEAD`);
     core.info(`Schema file: ${schemaPath}`);
 
@@ -18,7 +18,10 @@ async function run(): Promise<void> {
     const octokit = github.getOctokit(token);
 
     // Get current schema
-    const currentSchemaContent = readFileSync(join(process.cwd(), schemaPath), 'utf8');
+    const currentSchemaContent = readFileSync(
+      join(process.cwd(), schemaPath),
+      'utf8',
+    );
 
     // Get base schema from git
     const { data: baseFile } = await octokit.rest.repos.getContent({
@@ -32,11 +35,16 @@ async function run(): Promise<void> {
       throw new Error('Could not retrieve base schema file');
     }
 
-    const baseSchemaContent = Buffer.from(baseFile.content, 'base64').toString('utf8');
+    const baseSchemaContent = Buffer.from(baseFile.content, 'base64').toString(
+      'utf8',
+    );
 
     // Compare schemas using our custom GraphQL inspector
-    const breakingChanges = detectBreakingChanges(baseSchemaContent, currentSchemaContent);
-    
+    const breakingChanges = detectBreakingChanges(
+      baseSchemaContent,
+      currentSchemaContent,
+    );
+
     // Filter breaking changes (dangerous changes not implemented yet in our inspector)
     const dangerousChanges: any[] = [];
 
@@ -50,23 +58,24 @@ async function run(): Promise<void> {
 
     if (breakingChanges.length > 0) {
       core.warning('Breaking changes detected:');
-      breakingChanges.forEach(change => {
+      breakingChanges.forEach((change) => {
         core.warning(`- ${change.message}`);
       });
     }
 
     if (dangerousChanges.length > 0) {
       core.warning('Dangerous changes detected:');
-      dangerousChanges.forEach(change => {
+      dangerousChanges.forEach((change) => {
         core.warning(`- ${change.message}`);
       });
     }
 
     // Fail the action if breaking changes are found
     if (breakingChanges.length > 0) {
-      core.setFailed(`Found ${breakingChanges.length} breaking changes in GraphQL schema`);
+      core.setFailed(
+        `Found ${breakingChanges.length} breaking changes in GraphQL schema`,
+      );
     }
-
   } catch (error) {
     core.setFailed(error instanceof Error ? error.message : String(error));
   }

@@ -73,8 +73,9 @@ const getLocation = (
 const isDeprecated = <Node extends { directives?: readonly DirectiveNode[] }>(
   node: Node | null | undefined,
 ) =>
-  !!node?.directives?.some(directive => directive.name.value === 'deprecated');
-
+  !!node?.directives?.some(
+    (directive) => directive.name.value === 'deprecated',
+  );
 
 /**
  * Given two schemas, returns an Array containing descriptions of any breaking
@@ -223,7 +224,7 @@ function findFieldsThatChangedTypeOnObjectOrInterfaceTypes(
             resourceName: `${typeName}.${fieldName}`,
             type: 'FIELD_CHANGED_KIND',
             wasDeprecated: isDeprecated(oldTypeFieldsDef[fieldName].astNode),
-            });
+          });
         }
       }
     }
@@ -339,7 +340,7 @@ function findArgChanges(
 
       for (const oldArgDef of oldTypeFields[fieldName].args) {
         const newArgs = newTypeFields[fieldName].args;
-        const newArgDef = newArgs.find(arg => arg.name === oldArgDef.name);
+        const newArgDef = newArgs.find((arg) => arg.name === oldArgDef.name);
 
         // Arg not present
         if (!newArgDef) {
@@ -363,7 +364,7 @@ function findArgChanges(
 
             const wasRequiredByDirective =
               oldArgDef.astNode?.directives?.some(
-                directive => directive.name.value === 'required',
+                (directive) => directive.name.value === 'required',
               ) ?? undefined;
 
             breakingChanges.push({
@@ -374,7 +375,7 @@ function findArgChanges(
               resourceName: `${fieldName}.${oldArgDef.name}`,
               type: becameRequired ? 'ARG_BECAME_REQUIRED' : 'ARG_CHANGED_KIND',
               wasDeprecated: isDeprecated(oldArgDef.astNode),
-                wasRequiredByDirective,
+              wasRequiredByDirective,
             });
           } else if (
             oldArgDef.defaultValue !== undefined &&
@@ -386,14 +387,14 @@ function findArgChanges(
               type: 'ARG_DEFAULT_VALUE_CHANGE',
               message: `\`${oldType.name}.${fieldName}\` arg \`${oldArgDef.name}\` has changed defaultValue`,
               wasDeprecated: isDeprecated(oldType.astNode),
-                  });
+            });
           }
         }
       }
       // Check if arg was added to the field
       for (const newArgDef of newTypeFields[fieldName].args) {
         const oldArgs = oldTypeFields[fieldName].args;
-        const oldArgDef = oldArgs.find(arg => arg.name === newArgDef.name);
+        const oldArgDef = oldArgs.find((arg) => arg.name === newArgDef.name);
         if (!oldArgDef) {
           const argName = newArgDef.name;
 
@@ -404,7 +405,7 @@ function findArgChanges(
               type: 'REQUIRED_ARG_ADDED',
               message: `A required arg \`${argName}\` on \`${typeName}.${fieldName}\` was added`,
               wasDeprecated: isDeprecated(oldTypeFields[fieldName].astNode),
-                });
+            });
           } else {
             dangerousChanges.push({
               loc: getLocation(newArgDef.astNode),
@@ -412,7 +413,7 @@ function findArgChanges(
               type: 'OPTIONAL_ARG_ADDED',
               message: `An optional arg \`${argName}\` on \`${typeName}.${fieldName}\` was added`,
               wasDeprecated: isDeprecated(oldTypeFields[fieldName].astNode),
-                });
+            });
           }
         }
       }
@@ -471,7 +472,7 @@ export function detectBreakingChanges(
 ): BreakingChange[] {
   const fromSchema = buildSchema(from);
   const toSchema = buildSchema(to);
-  
+
   return [
     ...findRemovedTypes(fromSchema, toSchema),
     ...findTypesThatChangedKind(fromSchema, toSchema),
