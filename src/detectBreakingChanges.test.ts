@@ -163,6 +163,7 @@ describe('type removal', () => {
     expect(breakingChanges[0].message).toBe('`Post` removed from schema');
     expect(breakingChanges[0].type).toBe('TYPE_REMOVED');
     expect(breakingChanges[0].resourceName).toBe('Post');
+    expect(breakingChanges[0].loc).toBeUndefined();
   });
 
   it('should detect multiple type removals', () => {

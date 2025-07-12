@@ -60,22 +60,24 @@ export async function run(): Promise<void> {
 
     if (breakingChanges.length > 0) {
       breakingChanges.forEach((change) => {
-        const [line, col] = change.loc.split(':').map(Number);
+        const [startLine, startColumn] =
+          change.loc?.split(':').map(Number) ?? [];
         core.error(`[Breaking change] ${change.message}`, {
           file: schemaPath,
-          startLine: line || undefined,
-          startColumn: col || undefined,
+          startLine,
+          startColumn,
         });
       });
     }
 
     if (dangerousChanges.length > 0) {
       dangerousChanges.forEach((change) => {
-        const [line, col] = change.loc.split(':').map(Number);
+        const [startLine, startColumn] =
+          change.loc?.split(':').map(Number) ?? [];
         core.warning(`[Dangerous change] ${change.message}`, {
           file: schemaPath,
-          startLine: line || undefined,
-          startColumn: col || undefined,
+          startLine,
+          startColumn,
         });
       });
     }

@@ -50,7 +50,7 @@ type DangerousChangeType =
 
 interface Change {
   appliesOnlyToSchema?: boolean;
-  loc: `${number}:${number}`;
+  loc: `${number}:${number}` | undefined;
   message: string;
   resourceName: string;
   wasDeprecated: boolean;
@@ -132,7 +132,7 @@ function findRemovedTypes(
 
     if (!newTypeMap[typeName]) {
       breakingChanges.push({
-        loc: getLocation(oldType.astNode),
+        loc: undefined,
         message: `\`${typeName}\` removed from schema`,
         resourceName: typeName,
         type: 'TYPE_REMOVED',
