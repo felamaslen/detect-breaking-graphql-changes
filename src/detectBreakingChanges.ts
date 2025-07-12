@@ -78,6 +78,45 @@ const isDeprecated = <Node extends { directives?: readonly DirectiveNode[] }>(
   );
 
 /**
+ * Deep equality comparison for default values
+ */
+function isDefaultValueEqual(oldValue: any, newValue: any): boolean {
+  if (oldValue === newValue) {
+    return true;
+  }
+  
+  if (oldValue == null || newValue == null) {
+    return oldValue === newValue;
+  }
+  
+  if (typeof oldValue !== typeof newValue) {
+    return false;
+  }
+  
+  if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+    if (oldValue.length !== newValue.length) {
+      return false;
+    }
+    return oldValue.every((item, index) => isDefaultValueEqual(item, newValue[index]));
+  }
+  
+  if (typeof oldValue === 'object' && typeof newValue === 'object') {
+    const oldKeys = Object.keys(oldValue);
+    const newKeys = Object.keys(newValue);
+    
+    if (oldKeys.length !== newKeys.length) {
+      return false;
+    }
+    
+    return oldKeys.every(key => 
+      newKeys.includes(key) && isDefaultValueEqual(oldValue[key], newValue[key])
+    );
+  }
+  
+  return false;
+}
+
+/**
  * Given two schemas, returns an Array containing descriptions of any breaking
  * changes in the newSchema related to removing an entire type.
  */
@@ -379,7 +418,7 @@ function findArgChanges(
             });
           } else if (
             oldArgDef.defaultValue !== undefined &&
-            oldArgDef.defaultValue !== newArgDef.defaultValue
+            !isDefaultValueEqual(oldArgDef.defaultValue, newArgDef.defaultValue)
           ) {
             dangerousChanges.push({
               loc: getLocation(newArgDef.astNode),

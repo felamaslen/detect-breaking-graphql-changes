@@ -101,7 +101,10 @@ describe('field removal', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(schema, schema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      schema,
+      schema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(0);
@@ -123,7 +126,10 @@ describe('field removal', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      fromSchema,
+      toSchema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(0);
@@ -374,7 +380,10 @@ describe('argument changes', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      fromSchema,
+      toSchema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(1);
@@ -394,7 +403,35 @@ describe('argument changes', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      fromSchema,
+      toSchema,
+    );
+
+    expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(0);
+  });
+
+  it('should not detect changes when field arg has array of custom object type with default value', () => {
+    const schema = gql`
+      enum SortField {
+        CREATED_AT
+        ID
+      }
+
+      input MySort {
+        DESC: SortField
+      }
+
+      type Query {
+        users(sort: [MySort!]! = [{ DESC: CREATED_AT }]): [String]
+      }
+    `;
+
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      schema,
+      schema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(0);
@@ -512,7 +549,10 @@ describe('enum value changes', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      fromSchema,
+      toSchema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(0);
@@ -526,7 +566,10 @@ describe('enum value changes', () => {
       }
     `;
 
-    const { breakingChanges, dangerousChanges } = detectBreakingChanges(schema, schema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      schema,
+      schema,
+    );
 
     expect(breakingChanges).toHaveLength(0);
     expect(dangerousChanges).toHaveLength(0);
