@@ -4,7 +4,7 @@
   "description": "GitHub Action to detect breaking changes on a GraphQL schema",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/index.ts -o dist",
+    "build": "rollup -c",
     "test": "vitest",
     "lint": "biome lint src/",
     "format": "biome format --write src/",
@@ -27,12 +27,17 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@rollup/plugin-commonjs": "^26.0.0",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-typescript": "^11.1.0",
     "@types/node": "^20.8.0",
-    "@vercel/ncc": "^0.38.0",
     "fake-tag": "^2.0.0",
     "husky": "^9.0.0",
-    "vitest": "^1.0.0",
-    "typescript": "^5.2.0"
+    "rollup": "^4.0.0",
+    "tslib": "^2.6.0",
+    "typescript": "^5.2.0",
+    "vitest": "^1.0.0"
   },
   "engines": {
     "node": ">=24.1.0"
