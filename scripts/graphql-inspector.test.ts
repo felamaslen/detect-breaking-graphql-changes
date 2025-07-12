@@ -395,3 +395,129 @@ describe('argument changes', () => {
     expect(changes).toHaveLength(0);
   });
 });
+
+describe('enum value changes', () => {
+  it('should detect when an enum value is removed', () => {
+    const fromSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+        INACTIVE
+        PENDING
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+        INACTIVE
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(1);
+    expect(changes[0].message).toBe(
+      'Value `PENDING` removed from enum `Status`',
+    );
+    expect(changes[0].type).toBe('VALUE_REMOVED_FROM_ENUM');
+    expect(changes[0].resourceName).toBe('Status.PENDING');
+  });
+
+  it('should detect multiple enum value removals', () => {
+    const fromSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+        INACTIVE
+        PENDING
+        ARCHIVED
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(3);
+    expect(changes.map(c => c.message)).toEqual(
+      expect.arrayContaining([
+        'Value `INACTIVE` removed from enum `Status`',
+        'Value `PENDING` removed from enum `Status`',
+        'Value `ARCHIVED` removed from enum `Status`',
+      ]),
+    );
+    expect(changes.every(c => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(true);
+  });
+
+  it('should detect enum value removals from multiple enums', () => {
+    const fromSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+        INACTIVE
+      }
+      
+      enum Priority {
+        HIGH
+        LOW
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+      }
+      
+      enum Priority {
+        HIGH
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(2);
+    expect(changes.map(c => c.message)).toEqual(
+      expect.arrayContaining([
+        'Value `INACTIVE` removed from enum `Status`',
+        'Value `LOW` removed from enum `Priority`',
+      ]),
+    );
+    expect(changes.every(c => c.type === 'VALUE_REMOVED_FROM_ENUM')).toBe(true);
+  });
+
+  it('should not detect breaking changes when enum values are added', () => {
+    const fromSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+        INACTIVE
+      }
+    `);
+
+    const toSchema = buildSchema(`
+      enum Status {
+        ACTIVE
+        INACTIVE
+        PENDING
+      }
+    `);
+
+    const changes = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(changes).toHaveLength(0);
+  });
+
+  it('should not detect breaking changes when no enum values change', () => {
+    const schema = buildSchema(`
+      enum Status {
+        ACTIVE
+        INACTIVE
+      }
+    `);
+
+    const changes = detectBreakingChanges(schema, schema);
+
+    expect(changes).toHaveLength(0);
+  });
+});

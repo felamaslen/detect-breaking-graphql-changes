@@ -451,6 +451,44 @@ function findArgChanges(
 }
 
 /**
+ * Given two schemas, returns an Array containing descriptions of any breaking
+ * changes in the newSchema related to removing values from an enum type.
+ */
+function findValuesRemovedFromEnums(
+  oldSchema: GraphQLSchema,
+  newSchema: GraphQLSchema,
+): BreakingChange[] {
+  const oldTypeMap = oldSchema.getTypeMap();
+  const newTypeMap = newSchema.getTypeMap();
+
+  const valuesRemovedFromEnums: BreakingChange[] = [];
+  for (const typeName of Object.keys(oldTypeMap)) {
+    const oldType = oldTypeMap[typeName];
+    const newType = newTypeMap[typeName];
+    if (!isEnumType(oldType) || !isEnumType(newType)) {
+      continue;
+    }
+    const valuesInNewEnum = Object.create(null);
+    for (const value of newType.getValues()) {
+      valuesInNewEnum[value.name] = true;
+    }
+    for (const value of oldType.getValues()) {
+      if (!valuesInNewEnum[value.name]) {
+        valuesRemovedFromEnums.push({
+          loc: getLocation(newType.astNode),
+          resourceName: `${typeName}.${value.name}`,
+          type: 'VALUE_REMOVED_FROM_ENUM',
+          message: `Value \`${value.name}\` removed from enum \`${typeName}\``,
+          wasDeprecated: isDeprecated(value.astNode),
+          wasNotImplemented: isNotImplemented(value.astNode),
+        });
+      }
+    }
+  }
+  return valuesRemovedFromEnums;
+}
+
+/**
  * Detect dangerous and breaking changes from one version of a GraphQL schema to another
  */
 export function detectBreakingChanges(
@@ -462,5 +500,6 @@ export function detectBreakingChanges(
     ...findTypesThatChangedKind(from, to),
     ...findFieldsThatChangedTypeOnObjectOrInterfaceTypes(from, to),
     ...findArgChanges(from, to).breakingChanges,
+    ...findValuesRemovedFromEnums(from, to),
   ].filter(changes => !changes.wasNotImplemented);
 }
