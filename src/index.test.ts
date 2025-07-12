@@ -152,7 +152,7 @@ describe('GitHub Action', () => {
 
     // Assertions
     expect(mockCore.info).toHaveBeenCalledWith('Found 0 breaking changes');
-    expect(mockCore.info).toHaveBeenCalledWith('Found 1 dangerous changes');
+    expect(mockCore.info).toHaveBeenCalledWith('Found 1 dangerous change');
     expect(mockCore.warning).toHaveBeenCalledWith(
       '[Dangerous change] An optional arg `name` on `Query.user` was added',
       {
@@ -215,7 +215,7 @@ describe('GitHub Action', () => {
       },
     );
     expect(mockCore.setFailed).toHaveBeenCalledWith(
-      'Found 1 breaking changes in GraphQL schema',
+      'Found 1 breaking change in GraphQL schema',
     );
     expect(mockCore.setOutput).toHaveBeenCalledWith(
       'breaking_changes',

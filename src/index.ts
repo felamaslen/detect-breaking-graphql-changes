@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import pluralize from 'pluralize';
 import { detectBreakingChanges } from './detectBreakingChanges';
 
 export async function run(): Promise<void> {
@@ -50,8 +51,12 @@ export async function run(): Promise<void> {
     core.setOutput('dangerous_changes', JSON.stringify(dangerousChanges));
 
     // Log results
-    core.info(`Found ${breakingChanges.length} breaking changes`);
-    core.info(`Found ${dangerousChanges.length} dangerous changes`);
+    core.info(
+      `Found ${breakingChanges.length} breaking ${pluralize('change', breakingChanges.length)}`,
+    );
+    core.info(
+      `Found ${dangerousChanges.length} dangerous ${pluralize('change', dangerousChanges.length)}`,
+    );
 
     if (breakingChanges.length > 0) {
       breakingChanges.forEach((change) => {
@@ -78,7 +83,7 @@ export async function run(): Promise<void> {
     // Fail the action if breaking changes are found
     if (breakingChanges.length > 0) {
       core.setFailed(
-        `Found ${breakingChanges.length} breaking changes in GraphQL schema`,
+        `Found ${breakingChanges.length} breaking ${pluralize('change', breakingChanges.length)} in GraphQL schema`,
       );
     }
   } catch (error) {
