@@ -4,12 +4,11 @@ author: 'felamaslen'
 
 inputs:
   base_ref:
-    description: 'Base reference to compare against'
+    description: 'Base reference to compare against, e.g. main or master'
     required: true
   schema:
-    description: 'Path to the GraphQL schema file'
+    description: 'Path to the GraphQL schema file, e.g. src/generated/schema.graphql'
     required: true
-    default: 'schema.graphql'
 
 outputs:
   breaking_changes:
