@@ -21,5 +21,4 @@ export default {
       declaration: false,
     }),
   ],
-  external: ['@actions/core', '@actions/github'],
 };
