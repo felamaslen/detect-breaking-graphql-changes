@@ -101,9 +101,10 @@ describe('field removal', () => {
       }
     `;
 
-    const { breakingChanges } = detectBreakingChanges(schema, schema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(schema, schema);
 
     expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(0);
   });
 
   it('should not detect breaking changes when fields are added', () => {
@@ -122,9 +123,10 @@ describe('field removal', () => {
       }
     `;
 
-    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(0);
   });
 });
 
@@ -372,9 +374,11 @@ describe('argument changes', () => {
       }
     `;
 
-    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(1);
+    expect(dangerousChanges[0].type).toBe('OPTIONAL_ARG_ADDED');
   });
 
   it('should not detect breaking changes when arguments become optional', () => {
@@ -390,9 +394,10 @@ describe('argument changes', () => {
       }
     `;
 
-    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(0);
   });
 });
 
@@ -507,9 +512,10 @@ describe('enum value changes', () => {
       }
     `;
 
-    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(fromSchema, toSchema);
 
     expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(0);
   });
 
   it('should not detect breaking changes when no enum values change', () => {
@@ -520,9 +526,10 @@ describe('enum value changes', () => {
       }
     `;
 
-    const { breakingChanges } = detectBreakingChanges(schema, schema);
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(schema, schema);
 
     expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(0);
   });
 });
 
