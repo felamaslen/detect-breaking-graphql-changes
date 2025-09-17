@@ -124665,13 +124665,19 @@ function findTypesThatChangedKind(oldSchema, newSchema) {
         const oldType = oldTypeMap[typeName];
         const newType = newTypeMap[typeName];
         if (oldType.constructor !== newType.constructor) {
-            breakingChanges.push({
-                loc: getLocation(newType.astNode),
-                message: `\`${typeName}\` changed from ${typeKindName(oldType)} to ${typeKindName(newType)}`,
-                resourceName: typeName,
-                type: 'TYPE_CHANGED_KIND',
-                wasDeprecated: isDeprecated(oldType.astNode),
-            });
+            if ((isObjectType(oldType) && isInterfaceType(newType)) ||
+                (isInterfaceType(oldType) && isObjectType(newType))) {
+                breakingChanges.push(...findFieldsThatChangedTypeOnObjectOrInterfaceType(typeName, oldType, newType));
+            }
+            else {
+                breakingChanges.push({
+                    loc: getLocation(newType.astNode),
+                    message: `\`${typeName}\` changed from ${typeKindName(oldType)} to ${typeKindName(newType)}`,
+                    resourceName: typeName,
+                    type: 'TYPE_CHANGED_KIND',
+                    wasDeprecated: isDeprecated(oldType.astNode),
+                });
+            }
         }
     }
     return breakingChanges;
@@ -124697,6 +124703,44 @@ function typeKindName(type) {
     }
     throw new TypeError(`Unknown type ${type.constructor.name}`);
 }
+function findFieldsThatChangedTypeOnObjectOrInterfaceType(typeName, oldType, newType) {
+    const breakingChanges = [];
+    const oldTypeFieldsDef = oldType.getFields();
+    const newTypeFieldsDef = newType.getFields();
+    for (const fieldName of Object.keys(oldTypeFieldsDef)) {
+        // Check if the field is missing on the type in the new schema.
+        if (!(fieldName in newTypeFieldsDef)) {
+            breakingChanges.push({
+                loc: getLocation(newType.astNode),
+                resourceName: `${typeName}.${fieldName}`,
+                type: 'FIELD_REMOVED',
+                message: `\`${typeName}.${fieldName}\` removed from schema`,
+                wasDeprecated: isDeprecated(oldTypeFieldsDef[fieldName].astNode),
+            });
+        }
+        else {
+            const oldFieldType = oldTypeFieldsDef[fieldName].type;
+            const newFieldType = newTypeFieldsDef[fieldName].type;
+            const isSafe = isChangeSafeForObjectOrInterfaceField(oldFieldType, newFieldType);
+            if (!isSafe) {
+                const oldFieldTypeString = isNamedType(oldFieldType)
+                    ? oldFieldType.name
+                    : oldFieldType.toString();
+                const newFieldTypeString = isNamedType(newFieldType)
+                    ? newFieldType.name
+                    : newFieldType.toString();
+                breakingChanges.push({
+                    loc: getLocation(newTypeFieldsDef[fieldName].astNode),
+                    message: `Field \`${typeName}.${fieldName}\` changed type from \`${oldFieldTypeString}\` to \`${newFieldTypeString}\``,
+                    resourceName: `${typeName}.${fieldName}`,
+                    type: 'FIELD_CHANGED_KIND',
+                    wasDeprecated: isDeprecated(oldTypeFieldsDef[fieldName].astNode),
+                });
+            }
+        }
+    }
+    return breakingChanges;
+}
 function findFieldsThatChangedTypeOnObjectOrInterfaceTypes(oldSchema, newSchema) {
     const oldTypeMap = oldSchema.getTypeMap();
     const newTypeMap = newSchema.getTypeMap();
@@ -124709,40 +124753,7 @@ function findFieldsThatChangedTypeOnObjectOrInterfaceTypes(oldSchema, newSchema)
             newType.constructor !== oldType.constructor) {
             continue;
         }
-        const oldTypeFieldsDef = oldType.getFields();
-        const newTypeFieldsDef = newType.getFields();
-        for (const fieldName of Object.keys(oldTypeFieldsDef)) {
-            // Check if the field is missing on the type in the new schema.
-            if (!(fieldName in newTypeFieldsDef)) {
-                breakingChanges.push({
-                    loc: getLocation(newType.astNode),
-                    resourceName: `${typeName}.${fieldName}`,
-                    type: 'FIELD_REMOVED',
-                    message: `\`${typeName}.${fieldName}\` removed from schema`,
-                    wasDeprecated: isDeprecated(oldTypeFieldsDef[fieldName].astNode),
-                });
-            }
-            else {
-                const oldFieldType = oldTypeFieldsDef[fieldName].type;
-                const newFieldType = newTypeFieldsDef[fieldName].type;
-                const isSafe = isChangeSafeForObjectOrInterfaceField(oldFieldType, newFieldType);
-                if (!isSafe) {
-                    const oldFieldTypeString = isNamedType(oldFieldType)
-                        ? oldFieldType.name
-                        : oldFieldType.toString();
-                    const newFieldTypeString = isNamedType(newFieldType)
-                        ? newFieldType.name
-                        : newFieldType.toString();
-                    breakingChanges.push({
-                        loc: getLocation(newTypeFieldsDef[fieldName].astNode),
-                        message: `Field \`${typeName}.${fieldName}\` changed type from \`${oldFieldTypeString}\` to \`${newFieldTypeString}\``,
-                        resourceName: `${typeName}.${fieldName}`,
-                        type: 'FIELD_CHANGED_KIND',
-                        wasDeprecated: isDeprecated(oldTypeFieldsDef[fieldName].astNode),
-                    });
-                }
-            }
-        }
+        breakingChanges.push(...findFieldsThatChangedTypeOnObjectOrInterfaceType(typeName, oldType, newType));
     }
     return breakingChanges;
 }
