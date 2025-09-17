@@ -315,6 +315,64 @@ describe('type kind changes', () => {
     expect(breakingChanges[0].resourceName).toBe('Status');
     expect(breakingChanges[0].loc).toBe('2:7');
   });
+
+  it('should accept a type changing to an interface, if its fields are compatible', () => {
+    const fromSchema = gql`
+      type User {
+        id: String
+        name: String
+      }
+    `;
+
+    const toSchema = gql`
+      interface User {
+        id: String
+        name: String
+      }
+
+      type UserImpl implements User {
+        id: String
+        name: String
+      }
+    `;
+
+    const { breakingChanges, dangerousChanges } = detectBreakingChanges(
+      fromSchema,
+      toSchema,
+    );
+
+    expect(breakingChanges).toHaveLength(0);
+    expect(dangerousChanges).toHaveLength(0);
+  });
+
+  it('should not accept a type changing to an interface, if its fields are not compatible', () => {
+    const fromSchema = gql`
+      type User {
+        id: String
+        name: String
+        email: String
+      }
+    `;
+
+    const toSchema = gql`
+      interface User {
+        id: String
+        name: String
+      }
+
+      type UserImpl implements User {
+        id: String
+        name: String
+      }
+    `;
+
+    const { breakingChanges } = detectBreakingChanges(fromSchema, toSchema);
+
+    expect(breakingChanges).toHaveLength(1);
+    expect(breakingChanges[0].message).toBe('`User.email` removed from schema');
+    expect(breakingChanges[0].type).toBe('FIELD_REMOVED');
+    expect(breakingChanges[0].resourceName).toBe('User.email');
+  });
 });
 
 describe('argument changes', () => {
